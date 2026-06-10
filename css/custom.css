@@ -1,0 +1,325 @@
+/* ==========================================
+   浅夏 Blog - 动漫风格自定义样式
+   Sakura Anime Theme
+   ========================================== */
+
+/* ---------- Animated Gradient Background ---------- */
+@keyframes gradientBG {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 100% 0%; }
+  50%  { background-position: 100% 100%; }
+  75%  { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+#web_bg {
+  background: linear-gradient(-45deg, #f8e3ea, #e8d5f5, #d5e8f5, #fce4ec, #f3e5f5);
+  background-size: 400% 400%;
+  animation: gradientBG 20s ease infinite;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+/* ---------- Glass Morphism Cards ---------- */
+.card-widget,
+#recent-posts > .recent-post-item,
+.layout > .recent-posts > .recent-post-item,
+.layout_post > #post,
+.layout_page > #page,
+#aside_content .card-widget {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 20px rgba(255, 133, 162, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-widget:hover,
+#recent-posts > .recent-post-item:hover {
+  box-shadow: 0 8px 30px rgba(255, 133, 162, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ---------- Navigation Bar ---------- */
+#nav {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-bottom: 1px solid rgba(255, 183, 197, 0.3);
+}
+
+/* ---------- Post Cards on Homepage ---------- */
+#recent-posts > .recent-post-item {
+  overflow: hidden;
+}
+
+/* Post card cover image area */
+.recent-post-item .post_cover a {
+  height: 100%;
+}
+
+.recent-post-item .post_cover img {
+  border-radius: 16px 0 0 16px;
+}
+
+@media screen and (max-width: 768px) {
+  .recent-post-item .post_cover img {
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+/* ---------- Footer ---------- */
+#footer {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---------- Sidebar Cards ---------- */
+#aside_content .card-widget {
+  margin-bottom: 15px;
+}
+
+#aside_content .card-widget:hover {
+  box-shadow: 0 6px 24px rgba(255, 133, 162, 0.15);
+}
+
+/* Author card avatar */
+#aside_content .card-widget.card-info img {
+  border-radius: 50%;
+  border: 3px solid #FFB7C5;
+  box-shadow: 0 0 20px rgba(255, 133, 162, 0.3);
+  transition: transform 0.5s ease;
+}
+
+#aside_content .card-widget.card-info img:hover {
+  transform: rotate(360deg);
+}
+
+/* ---------- Tag Styling ---------- */
+#aside_content .card-tag-cloud a,
+.tag-cloud-tags a {
+  background: rgba(255, 183, 197, 0.15) !important;
+  border: 1px solid rgba(255, 133, 162, 0.3) !important;
+  border-radius: 12px !important;
+  padding: 4px 12px !important;
+  transition: all 0.3s ease;
+}
+
+#aside_content .card-tag-cloud a:hover,
+.tag-cloud-tags a:hover {
+  background: rgba(255, 133, 162, 0.3) !important;
+  border-color: #FF85A2 !important;
+  color: #FF85A2 !important;
+  transform: scale(1.08);
+}
+
+/* ---------- Category Styling ---------- */
+#aside_content .card-category-list .card-category-list-item {
+  transition: all 0.3s ease;
+}
+
+#aside_content .card-category-list .card-category-list-item:hover {
+  transform: translateX(5px);
+}
+
+/* ---------- Custom Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 183, 197, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFB7C5, #FF85A2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FF85A2, #FF69B4);
+}
+
+/* ---------- Selection ---------- */
+::selection {
+  background: rgba(255, 183, 197, 0.4);
+  color: #333;
+}
+
+/* ---------- Links ---------- */
+a {
+  transition: color 0.3s ease;
+}
+
+#article-container a {
+  color: #FF85A2;
+}
+
+#article-container a:hover {
+  color: #FF69B4;
+  text-decoration: underline wavy #FFB7C5;
+}
+
+/* ---------- Post Title ---------- */
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4 {
+  transition: all 0.3s ease;
+}
+
+#article-container h2 {
+  border-left: 4px solid #FF85A2;
+  padding-left: 12px;
+}
+
+#article-container h3 {
+  border-left: 3px solid #FFB7C5;
+  padding-left: 10px;
+}
+
+/* ---------- Blockquote ---------- */
+#article-container blockquote {
+  background: rgba(255, 183, 197, 0.1);
+  border-left: 4px solid #FF85A2;
+  border-radius: 0 8px 8px 0;
+}
+
+/* ---------- Code Block ---------- */
+figure.highlight {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Buttons ---------- */
+button,
+.btn,
+.btn-copy,
+#rightside-config-show,
+#rightside > div > button {
+  transition: all 0.3s ease;
+}
+
+/* ---------- Page Top Image ---------- */
+#page-header {
+  transition: all 0.5s ease;
+}
+
+#page-header.post-bg,
+#page-header.archives-bg {
+  background-attachment: fixed;
+}
+
+/* ---------- Post Navigation ---------- */
+#pagination {
+  margin: 20px 0;
+}
+
+#pagination .page-number {
+  border-radius: 10px !important;
+  transition: all 0.3s ease;
+}
+
+#pagination .page-number.current {
+  background: #FF85A2 !important;
+  box-shadow: 0 4px 12px rgba(255, 133, 162, 0.4);
+}
+
+/* ---------- 404 Page ---------- */
+.error404 #page-header {
+  background: linear-gradient(135deg, #f8e3ea, #e8d5f5);
+}
+
+/* ---------- Anime-Style Headings ---------- */
+h1.site-title,
+.blog_title {
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(255, 133, 162, 0.2);
+}
+
+/* ---------- TOC Styling ---------- */
+#aside_content .toc-widget {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+}
+
+/* ---------- Smooth loading ---------- */
+#content-inner,
+.layout {
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Dark Mode Overrides ---------- */
+[data-theme="dark"] .card-widget,
+[data-theme="dark"] #recent-posts > .recent-post-item,
+[data-theme="dark"] .layout > .recent-posts > .recent-post-item,
+[data-theme="dark"] #aside_content .card-widget {
+  background: rgba(30, 30, 50, 0.7) !important;
+  border: 1px solid rgba(255, 183, 197, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] #nav {
+  background: rgba(30, 30, 50, 0.8) !important;
+}
+
+[data-theme="dark"] #footer {
+  background: rgba(30, 30, 50, 0.6) !important;
+}
+
+[data-theme="dark"] #web_bg {
+  background: linear-gradient(-45deg, #1a1025, #1a1a2e, #16213e, #1a1025);
+  background-size: 400% 400%;
+  animation: gradientBG 20s ease infinite;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FF85A2, #c06080);
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(255, 133, 162, 0.4);
+  color: #eee;
+}
+
+/* ---------- Responsive ---------- */
+@media screen and (max-width: 900px) {
+  #aside_content .card-widget,
+  #recent-posts > .recent-post-item,
+  .layout_post > #post {
+    background: rgba(255, 255, 255, 0.75) !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #page-header #site-info {
+    padding: 0 20px;
+  }
+
+  .layout {
+    padding: 0 10px;
+  }
+}
