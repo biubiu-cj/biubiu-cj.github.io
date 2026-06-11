@@ -6,7 +6,7 @@
 (function() {
   'use strict';
 
-  if (window.innerWidth < 360) return; // skip extreme small screens
+  if (window.innerWidth < 320) return; // skip extreme small screens
 
   var canvas = document.createElement('canvas');
   canvas.id = 'stardust-canvas';

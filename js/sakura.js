@@ -7,7 +7,7 @@
   'use strict';
 
   // Only run on devices with enough power (skip on very weak mobile)
-  if (window.innerWidth < 400) return;
+  if (window.innerWidth < 320) return;
 
   var canvas = document.createElement('canvas');
   canvas.id = 'sakura-canvas';

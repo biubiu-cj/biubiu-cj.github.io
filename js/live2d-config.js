@@ -16,7 +16,9 @@ L2Dwidget.init({
     vOffset: -30,
   },
   mobile: {
-    show: false,
+    show: true,
+    scale: 0.6,
+    motion: true,
   },
   react: {
     opacityDefault: 0.8,
