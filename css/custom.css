@@ -364,10 +364,7 @@ h1.site-title,
   background: transparent !important;
 }
 
-[data-theme="dark"] body {
-  background: url('/img/bg.jpg') center/cover no-repeat fixed !important;
-  filter: brightness(0.5);
-}
+/* dark mode disabled */
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: rgba(130, 160, 220, 0.3);
