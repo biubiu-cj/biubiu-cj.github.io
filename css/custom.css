@@ -1,71 +1,186 @@
 /* ==========================================
-   浅夏 Blog - 动漫风格自定义样式
-   Sakura Anime Theme
+   浅夏 Blog — Cinematic Anime Theme
+   动态效果：Ken Burns 慢速缩放 + 星光粒子 + 视差感
    ========================================== */
 
-/* ---------- Animated Gradient Background ---------- */
-@keyframes gradientBG {
-  0%   { background-position: 0% 50%; }
-  25%  { background-position: 100% 0%; }
-  50%  { background-position: 100% 100%; }
-  75%  { background-position: 0% 100%; }
-  100% { background-position: 0% 50%; }
+/* ==========================================
+   1. Cinematic Background Layer (CSS-Only)
+   多层渐变模拟星空 + 城市灯光电影感背景
+   替换为真实图片：修改 #web_bg 的 background-image
+   ========================================== */
+@keyframes cinematicDrift {
+  0%   { background-position: 0% 30%, 100% 70%, 50% 50%, center; }
+  50%  { background-position: 100% 35%, 0% 65%, 45% 55%, center; }
+  100% { background-position: 0% 30%, 100% 70%, 50% 50%, center; }
+}
+
+@keyframes starPulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
 }
 
 #web_bg {
-  background: linear-gradient(-45deg, #f8e3ea, #e8d5f5, #d5e8f5, #fce4ec, #f3e5f5);
-  background-size: 400% 400%;
-  animation: gradientBG 20s ease infinite;
+  /* 多层 CSS 渐变：星空 + 城市灯光 + 月光 */
+  background:
+    /* 星空层：深蓝紫底色 + 微小亮点 */
+    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 28% 10%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 42% 18%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 55% 8%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 68% 22%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 85% 28%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 10% 35%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 92% 15%, rgba(255,255,255,0.6), transparent),
+    /* 月光/光晕 */
+    radial-gradient(ellipse 300px 200px at 70% 20%, rgba(180,200,255,0.15), transparent),
+    /* 城市灯光暖色底部 */
+    linear-gradient(to top, rgba(40,30,60,0) 0%, rgba(30,25,50,0.3) 60%, rgba(20,22,50,0.6) 100%),
+    /* 基础深空渐变 */
+    linear-gradient(180deg, #0d0f1a 0%, #131730 30%, #1a1f3a 60%, #1e2545 100%);
+  background-size: 200% 200%, 200% 200%, 200% 200%, auto;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: -2;
+  animation: cinematicDrift 60s ease-in-out infinite;
 }
 
-/* ---------- Glass Morphism Cards ---------- */
+/*
+   如果你有自定义背景图，替换上面的 #web_bg 为：
+   #web_bg {
+     background: url('/images/hero-bg.jpg') center/cover no-repeat fixed;
+     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+   }
+   图片建议放置路径：source/images/hero-bg.jpg
+*/
+
+/* ==========================================
+   2. Ken Burns Effect — Header Banner 慢速缩放
+   直接操作 background-size/position，兼容所有背景图
+   ========================================== */
+#page-header {
+  position: relative;
+  overflow: hidden;
+  background-size: 105% auto !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  animation: kenburns 35s ease-in-out infinite alternate;
+}
+
+@keyframes kenburns {
+  0%   { background-size: 105% auto; background-position: 50% 50%; }
+  100% { background-size: 112% auto; background-position: 50% 55%; }
+}
+
+/* 头部遮罩层（让文字更清晰可读） */
+#page-header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.4) 0%,
+    rgba(0,0,0,0.1) 35%,
+    rgba(0,0,0,0.35) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 确保标题文字在遮罩之上 */
+#page-header #site-info,
+#page-header #nav,
+#page-header #scroll-down {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================
+   3. Parallax Scroll — 视差滚动感
+   ========================================== */
+/* 头部背景固定，产生基础视差 */
+#page-header {
+  background-attachment: fixed !important;
+}
+
+/* 文章区域滚动时轻微上浮 */
+#content-inner {
+  animation: contentReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes contentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   4. Glass Morphism Cards (保留 + 增强)
+   ========================================== */
 .card-widget,
 #recent-posts > .recent-post-item,
 .layout > .recent-posts > .recent-post-item,
 .layout_post > #post,
 .layout_page > #page,
 #aside_content .card-widget {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-radius: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 20px rgba(255, 133, 162, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-widget:hover,
 #recent-posts > .recent-post-item:hover {
-  box-shadow: 0 8px 30px rgba(255, 133, 162, 0.2);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
 }
 
-/* ---------- Navigation Bar ---------- */
+/* ==========================================
+   5. Navigation Bar — 半透明毛玻璃
+   ========================================== */
 #nav {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border-bottom: 1px solid rgba(255, 183, 197, 0.3);
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.4s ease;
 }
 
-/* ---------- Post Cards on Homepage ---------- */
+/* 滚动后导航栏更实 */
+#nav.scroll {
+  background: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================
+   6. Post Cards
+   ========================================== */
 #recent-posts > .recent-post-item {
   overflow: hidden;
 }
 
-/* Post card cover image area */
 .recent-post-item .post_cover a {
   height: 100%;
 }
 
 .recent-post-item .post_cover img {
   border-radius: 16px 0 0 16px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.recent-post-item:hover .post_cover img {
+  transform: scale(1.05);
 }
 
 @media screen and (max-width: 768px) {
@@ -74,39 +189,44 @@
   }
 }
 
-/* ---------- Footer ---------- */
+/* ==========================================
+   7. Footer
+   ========================================== */
 #footer {
-  background: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* ---------- Sidebar Cards ---------- */
+/* ==========================================
+   8. Sidebar
+   ========================================== */
 #aside_content .card-widget {
   margin-bottom: 15px;
 }
 
 #aside_content .card-widget:hover {
-  box-shadow: 0 6px 24px rgba(255, 133, 162, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* Author card avatar */
 #aside_content .card-widget.card-info img {
   border-radius: 50%;
-  border: 3px solid #FFB7C5;
-  box-shadow: 0 0 20px rgba(255, 133, 162, 0.3);
-  transition: transform 0.5s ease;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 24px rgba(130, 160, 220, 0.3);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #aside_content .card-widget.card-info img:hover {
   transform: rotate(360deg);
 }
 
-/* ---------- Tag Styling ---------- */
+/* ==========================================
+   9. Tags
+   ========================================== */
 #aside_content .card-tag-cloud a,
 .tag-cloud-tags a {
-  background: rgba(255, 183, 197, 0.15) !important;
-  border: 1px solid rgba(255, 133, 162, 0.3) !important;
+  background: rgba(130, 160, 220, 0.1) !important;
+  border: 1px solid rgba(130, 160, 220, 0.25) !important;
   border-radius: 12px !important;
   padding: 4px 12px !important;
   transition: all 0.3s ease;
@@ -114,113 +234,92 @@
 
 #aside_content .card-tag-cloud a:hover,
 .tag-cloud-tags a:hover {
-  background: rgba(255, 133, 162, 0.3) !important;
-  border-color: #FF85A2 !important;
-  color: #FF85A2 !important;
+  background: rgba(130, 160, 220, 0.25) !important;
+  border-color: rgba(130, 160, 220, 0.5) !important;
+  color: #6a8cc4 !important;
   transform: scale(1.08);
 }
 
-/* ---------- Category Styling ---------- */
-#aside_content .card-category-list .card-category-list-item {
-  transition: all 0.3s ease;
-}
-
-#aside_content .card-category-list .card-category-list-item:hover {
-  transform: translateX(5px);
-}
-
-/* ---------- Custom Scrollbar ---------- */
+/* ==========================================
+   10. Scrollbar — 细暗色滚动条
+   ========================================== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 183, 197, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #FFB7C5, #FF85A2);
+  background: rgba(130, 160, 220, 0.4);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #FF85A2, #FF69B4);
+  background: rgba(130, 160, 220, 0.7);
 }
 
-/* ---------- Selection ---------- */
+/* ==========================================
+   11. Text Selection
+   ========================================== */
 ::selection {
-  background: rgba(255, 183, 197, 0.4);
-  color: #333;
+  background: rgba(130, 160, 220, 0.35);
+  color: #fff;
 }
 
-/* ---------- Links ---------- */
+/* ==========================================
+   12. Links
+   ========================================== */
 a {
   transition: color 0.3s ease;
 }
 
 #article-container a {
-  color: #FF85A2;
+  color: #6a8cc4;
 }
 
 #article-container a:hover {
-  color: #FF69B4;
-  text-decoration: underline wavy #FFB7C5;
+  color: #4a6ca4;
+  text-decoration: underline wavy rgba(130, 160, 220, 0.4);
 }
 
-/* ---------- Post Title ---------- */
-#article-container h1,
-#article-container h2,
-#article-container h3,
-#article-container h4 {
-  transition: all 0.3s ease;
-}
-
+/* ==========================================
+   13. Headings
+   ========================================== */
 #article-container h2 {
-  border-left: 4px solid #FF85A2;
+  border-left: 4px solid #6a8cc4;
   padding-left: 12px;
 }
 
 #article-container h3 {
-  border-left: 3px solid #FFB7C5;
+  border-left: 3px solid rgba(130, 160, 220, 0.5);
   padding-left: 10px;
 }
 
-/* ---------- Blockquote ---------- */
+/* ==========================================
+   14. Blockquote
+   ========================================== */
 #article-container blockquote {
-  background: rgba(255, 183, 197, 0.1);
-  border-left: 4px solid #FF85A2;
+  background: rgba(130, 160, 220, 0.08);
+  border-left: 4px solid rgba(130, 160, 220, 0.5);
   border-radius: 0 8px 8px 0;
 }
 
-/* ---------- Code Block ---------- */
+/* ==========================================
+   15. Code Block
+   ========================================== */
 figure.highlight {
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* ---------- Buttons ---------- */
-button,
-.btn,
-.btn-copy,
-#rightside-config-show,
-#rightside > div > button {
-  transition: all 0.3s ease;
-}
-
-/* ---------- Page Top Image ---------- */
-#page-header {
-  transition: all 0.5s ease;
-}
-
-#page-header.post-bg,
-#page-header.archives-bg {
-  background-attachment: fixed;
-}
-
-/* ---------- Post Navigation ---------- */
+/* ==========================================
+   16. Pagination
+   ========================================== */
 #pagination {
   margin: 20px 0;
 }
@@ -231,86 +330,112 @@ button,
 }
 
 #pagination .page-number.current {
-  background: #FF85A2 !important;
-  box-shadow: 0 4px 12px rgba(255, 133, 162, 0.4);
+  background: #6a8cc4 !important;
+  box-shadow: 0 4px 14px rgba(106, 140, 196, 0.35);
 }
 
-/* ---------- 404 Page ---------- */
-.error404 #page-header {
-  background: linear-gradient(135deg, #f8e3ea, #e8d5f5);
-}
-
-/* ---------- Anime-Style Headings ---------- */
+/* ==========================================
+   17. Site Title
+   ========================================== */
 h1.site-title,
 .blog_title {
   font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(255, 133, 162, 0.2);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.06em;
 }
 
-/* ---------- TOC Styling ---------- */
+#site-subtitle {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================
+   18. TOC
+   ========================================== */
 #aside_content .toc-widget {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 16px;
 }
 
-/* ---------- Smooth loading ---------- */
-#content-inner,
-.layout {
-  animation: fadeInUp 0.6s ease;
+/* ==========================================
+   19. 404 Page
+   ========================================== */
+.error404 #page-header {
+  background: linear-gradient(135deg, #1a1f3a, #2a1f3a, #1a1f3a) !important;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ---------- Dark Mode Overrides ---------- */
+/* ==========================================
+   20. Dark Mode Overrides
+   ========================================== */
 [data-theme="dark"] .card-widget,
 [data-theme="dark"] #recent-posts > .recent-post-item,
 [data-theme="dark"] .layout > .recent-posts > .recent-post-item,
 [data-theme="dark"] #aside_content .card-widget {
-  background: rgba(30, 30, 50, 0.7) !important;
-  border: 1px solid rgba(255, 183, 197, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(20, 20, 40, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] #nav {
-  background: rgba(30, 30, 50, 0.8) !important;
+  background: rgba(20, 20, 40, 0.7) !important;
 }
 
 [data-theme="dark"] #footer {
-  background: rgba(30, 30, 50, 0.6) !important;
+  background: rgba(20, 20, 40, 0.5) !important;
 }
 
 [data-theme="dark"] #web_bg {
-  background: linear-gradient(-45deg, #1a1025, #1a1a2e, #16213e, #1a1025);
-  background-size: 400% 400%;
-  animation: gradientBG 20s ease infinite;
+  background:
+    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 42% 18%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 68% 22%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.2), transparent),
+    radial-gradient(ellipse 300px 200px at 70% 20%, rgba(100,120,180,0.08), transparent),
+    linear-gradient(180deg, #080a14 0%, #0d0f1e 40%, #111428 100%);
+  background-size: 200% 200%, 200% 200%, 200% 200%, auto;
+  animation: cinematicDrift 60s ease-in-out infinite;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #FF85A2, #c06080);
+  background: rgba(130, 160, 220, 0.3);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(130, 160, 220, 0.5);
 }
 
 [data-theme="dark"] ::selection {
-  background: rgba(255, 133, 162, 0.4);
+  background: rgba(130, 160, 220, 0.4);
   color: #eee;
 }
 
-/* ---------- Responsive ---------- */
+[data-theme="dark"] #page-header::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.5) 0%,
+    rgba(0,0,0,0.2) 40%,
+    rgba(0,0,0,0.5) 100%
+  );
+}
+
+[data-theme="dark"] h1.site-title {
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+/* ==========================================
+   21. Responsive
+   ========================================== */
 @media screen and (max-width: 900px) {
   #aside_content .card-widget,
   #recent-posts > .recent-post-item,
   .layout_post > #post {
-    background: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  #page-header {
+    animation: kenburns 50s ease-in-out infinite alternate;
   }
 }
 
@@ -321,5 +446,21 @@ h1.site-title,
 
   .layout {
     padding: 0 10px;
+  }
+
+  /* 移动端减轻动画负担 */
+  #page-header {
+    animation-duration: 60s;
+  }
+}
+
+/* 极度省电模式：prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  #page-header {
+    animation: none;
+  }
+
+  #web_bg {
+    animation: none;
   }
 }
