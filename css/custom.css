@@ -4,61 +4,14 @@
    ========================================== */
 
 /* ==========================================
-   1. Cinematic Background Layer (CSS-Only)
-   多层渐变模拟星空 + 城市灯光电影感背景
-   替换为真实图片：修改 #web_bg 的 background-image
+   1. Body 全页背景图（不生成 #web_bg，避免与头部重叠）
    ========================================== */
-@keyframes cinematicDrift {
-  0%   { background-position: 0% 30%, 100% 70%, 50% 50%, center; }
-  50%  { background-position: 100% 35%, 0% 65%, 45% 55%, center; }
-  100% { background-position: 0% 30%, 100% 70%, 50% 50%, center; }
+body {
+  background: url('/img/bg.jpg') center/cover no-repeat fixed !important;
 }
-
-@keyframes starPulse {
-  0%, 100% { opacity: 0.4; }
-  50%      { opacity: 0.8; }
-}
-
-#web_bg {
-  /* 多层 CSS 渐变：星空 + 城市灯光 + 月光 */
-  background:
-    /* 星空层：深蓝紫底色 + 微小亮点 */
-    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1px 1px at 28% 10%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1.5px 1.5px at 42% 18%, rgba(255,255,255,0.7), transparent),
-    radial-gradient(1px 1px at 55% 8%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 68% 22%, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 85% 28%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 10% 35%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1.5px 1.5px at 92% 15%, rgba(255,255,255,0.6), transparent),
-    /* 月光/光晕 */
-    radial-gradient(ellipse 300px 200px at 70% 20%, rgba(180,200,255,0.15), transparent),
-    /* 城市灯光暖色底部 */
-    linear-gradient(to top, rgba(40,30,60,0) 0%, rgba(30,25,50,0.3) 60%, rgba(20,22,50,0.6) 100%),
-    /* 基础深空渐变 */
-    linear-gradient(180deg, #0d0f1a 0%, #131730 30%, #1a1f3a 60%, #1e2545 100%);
-  background-size: 200% 200%, 200% 200%, 200% 200%, auto;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -2;
-  animation: cinematicDrift 60s ease-in-out infinite;
-}
-
-/*
-   如果你有自定义背景图，替换上面的 #web_bg 为：
-   #web_bg {
-     background: url('/images/hero-bg.jpg') center/cover no-repeat fixed;
-     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
-   }
-   图片建议放置路径：source/images/hero-bg.jpg
-*/
 
 /* ==========================================
-   2. Ken Burns Effect — Header Banner 慢速缩放
-   直接操作 background-size/position，兼容所有背景图
+   2. Ken Burns Effect — 头部 Banner 慢速缩放
    ========================================== */
 #page-header {
   position: relative;
@@ -99,13 +52,8 @@
 }
 
 /* ==========================================
-   3. Parallax Scroll — 视差滚动感
+   3. Content Reveal — 内容渐入
    ========================================== */
-/* 头部背景固定，产生基础视差 */
-#page-header {
-  background-attachment: fixed !important;
-}
-
 /* 文章区域滚动时轻微上浮 */
 #content-inner {
   animation: contentReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -125,11 +73,20 @@
 /* ==========================================
    4. Glass Morphism Cards (保留 + 增强)
    ========================================== */
-.card-widget,
+/* 文章卡片：实色白底，不透明，左侧封面图 + 右侧文字 */
 #recent-posts > .recent-post-item,
-.layout > .recent-posts > .recent-post-item,
-.layout_post > #post,
-.layout_page > #page,
+.layout > .recent-posts > .recent-post-item {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 侧边栏卡片：半透明毛玻璃保留 */
+.card-widget,
 #aside_content .card-widget {
   background: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(16px) saturate(140%);
@@ -140,8 +97,23 @@
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.card-widget:hover,
+/* 文章详情页：实色白底 */
+.layout_post > #post,
+.layout_page > #page {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
 #recent-posts > .recent-post-item:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-widget:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
   transform: translateY(-4px);
 }
@@ -193,9 +165,9 @@
    7. Footer
    ========================================== */
 #footer {
-  background: rgba(255, 255, 255, 0.4) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* ==========================================
@@ -368,9 +340,16 @@ h1.site-title,
 /* ==========================================
    20. Dark Mode Overrides
    ========================================== */
-[data-theme="dark"] .card-widget,
 [data-theme="dark"] #recent-posts > .recent-post-item,
 [data-theme="dark"] .layout > .recent-posts > .recent-post-item,
+[data-theme="dark"] .layout_post > #post,
+[data-theme="dark"] .layout_page > #page {
+  background: rgba(30, 30, 50, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .card-widget,
 [data-theme="dark"] #aside_content .card-widget {
   background: rgba(20, 20, 40, 0.65) !important;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -382,20 +361,12 @@ h1.site-title,
 }
 
 [data-theme="dark"] #footer {
-  background: rgba(20, 20, 40, 0.5) !important;
+  background: transparent !important;
 }
 
-[data-theme="dark"] #web_bg {
-  background:
-    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 42% 18%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 68% 22%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.2), transparent),
-    radial-gradient(ellipse 300px 200px at 70% 20%, rgba(100,120,180,0.08), transparent),
-    linear-gradient(180deg, #080a14 0%, #0d0f1e 40%, #111428 100%);
-  background-size: 200% 200%, 200% 200%, 200% 200%, auto;
-  animation: cinematicDrift 60s ease-in-out infinite;
+[data-theme="dark"] body {
+  background: url('/img/bg.jpg') center/cover no-repeat fixed !important;
+  filter: brightness(0.5);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
@@ -457,10 +428,6 @@ h1.site-title,
 /* 极度省电模式：prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   #page-header {
-    animation: none;
-  }
-
-  #web_bg {
     animation: none;
   }
 }
