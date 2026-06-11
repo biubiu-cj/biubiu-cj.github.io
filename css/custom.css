@@ -396,7 +396,16 @@ h1.site-title,
 }
 
 /* ==========================================
-   21. Responsive
+   21. Live2D 看板娘层级
+   ========================================== */
+#live2d-widget,
+#live2dcanvas,
+canvas#live2dcanvas {
+  z-index: 9995 !important;
+}
+
+/* ==========================================
+   22. Responsive
    ========================================== */
 @media screen and (max-width: 900px) {
   #aside_content .card-widget,
