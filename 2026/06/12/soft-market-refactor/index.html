@@ -1,0 +1,415 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>软工集市：从 Go 到 Java 的重构之路 | 浅夏</title><meta name="author" content="biubiu"><meta name="copyright" content="biubiu"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#1e2545"><meta name="description" content="本文记录将学院交流平台「软工集市」从 Go (Gin + GORM) 重构到 Java (Spring Boot + MyBatis-Plus) 的全过程，涵盖架构演进、技术选型对比以及踩坑修复经验。   一、架构演进：从「平铺直叙」到「分层而治」原 Go 项目采用典型的 Gin 单体架构，Controller 层承担了过多职责——路由注册、参数校验、业务逻辑、数据库操作全部糅合在一个函数里。重">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软工集市：从 Go 到 Java 的重构之路">
+<meta property="og:url" content="https://biubiu-cj.github.io/2026/06/12/soft-market-refactor/index.html">
+<meta property="og:site_name" content="浅夏">
+<meta property="og:description" content="本文记录将学院交流平台「软工集市」从 Go (Gin + GORM) 重构到 Java (Spring Boot + MyBatis-Plus) 的全过程，涵盖架构演进、技术选型对比以及踩坑修复经验。   一、架构演进：从「平铺直叙」到「分层而治」原 Go 项目采用典型的 Gin 单体架构，Controller 层承担了过多职责——路由注册、参数校验、业务逻辑、数据库操作全部糅合在一个函数里。重">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://biubiu-cj.github.io/images/2.jpg">
+<meta property="article:published_time" content="2026-06-12T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-12T07:23:05.105Z">
+<meta property="article:author" content="biubiu">
+<meta property="article:tag" content="Gin">
+<meta property="article:tag" content="Go">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Kafka">
+<meta property="article:tag" content="MyBatis-Plus">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="重构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://biubiu-cj.github.io/images/2.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "软工集市：从 Go 到 Java 的重构之路",
+  "url": "https://biubiu-cj.github.io/2026/06/12/soft-market-refactor/",
+  "image": "https://biubiu-cj.github.io/images/2.jpg",
+  "datePublished": "2026-06-12T06:00:00.000Z",
+  "dateModified": "2026-06-12T07:23:05.105Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "biubiu",
+      "url": "https://github.com/biubiu-cj"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://biubiu-cj.github.io/2026/06/12/soft-market-refactor/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.5-b1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0f1a')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#1e2545')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&amp;display=swap" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: biubiu","link":"链接: ","source":"来源: 浅夏","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '软工集市：从 Go 到 Java 的重构之路',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+    document.addEventListener('DOMContentLoaded', preloader.endLoading)
+    // Add timeout protection: force end after 7 seconds
+    setTimeout(preloader.endLoading, 7000)
+  }
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/images/2.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">浅夏</span></a><a class="nav-page-title" href="/"><span class="site-name">软工集市：从 Go 到 Java 的重构之路</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">软工集市：从 Go 到 Java 的重构之路</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-12T06:00:00.000Z" title="发表于 2026-06-12 14:00:00">2026-06-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-12T07:23:05.105Z" title="更新于 2026-06-12 15:23:05">2026-06-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>本文记录将学院交流平台「软工集市」从 Go (Gin + GORM) 重构到 Java (Spring Boot + MyBatis-Plus) 的全过程，涵盖架构演进、技术选型对比以及踩坑修复经验。</p>
+</blockquote>
+<hr>
+<h2 id="一、架构演进：从「平铺直叙」到「分层而治」"><a href="#一、架构演进：从「平铺直叙」到「分层而治」" class="headerlink" title="一、架构演进：从「平铺直叙」到「分层而治」"></a>一、架构演进：从「平铺直叙」到「分层而治」</h2><p>原 Go 项目采用典型的 Gin 单体架构，Controller 层承担了过多职责——路由注册、参数校验、业务逻辑、数据库操作全部糅合在一个函数里。重构后的 Java 项目严格遵循 <strong>Controller → Service → Mapper</strong> 三层分离，辅以 DTO&#x2F;VO 做入参出参隔离。</p>
+<h3 id="1-1-统一响应格式"><a href="#1-1-统一响应格式" class="headerlink" title="1.1 统一响应格式"></a>1.1 统一响应格式</h3><p>Go 版本用一个简单的函数包装返回：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go: response/response.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Success</span><span class="params">(ctx *gin.Context, data gin.H, msg <span class="type">string</span>)</span></span> &#123;</span><br><span class="line">    ctx.JSON(http.StatusOK, gin.H&#123;<span class="string">&quot;code&quot;</span>: <span class="number">200</span>, <span class="string">&quot;data&quot;</span>: data, <span class="string">&quot;msg&quot;</span>: msg&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Fail</span><span class="params">(ctx *gin.Context, data gin.H, msg <span class="type">string</span>)</span></span> &#123;</span><br><span class="line">    ctx.JSON(http.StatusOK, gin.H&#123;<span class="string">&quot;code&quot;</span>: <span class="number">400</span>, <span class="string">&quot;data&quot;</span>: data, <span class="string">&quot;msg&quot;</span>: msg&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次调用需要手动构造 <code>gin.H</code>，类型不安全，字段名靠字符串硬编码。Java 版本引入泛型类 <code>Result&lt;T&gt;</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: utils/Result.java</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@NoArgsConstructor</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="meta">@Accessors(chain = true)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Result</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> Integer code;</span><br><span class="line">    <span class="keyword">private</span> String message;</span><br><span class="line">    <span class="keyword">private</span> T data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Result&lt;T&gt; <span class="title function_">success</span><span class="params">(T data)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Result</span>&lt;&gt;(<span class="number">200</span>, <span class="string">&quot;操作成功&quot;</span>, data);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Result&lt;T&gt; <span class="title function_">fail</span><span class="params">(Integer code, String msg)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Result</span>&lt;&gt;(code, msg, <span class="literal">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配合 <code>@RestControllerAdvice</code> 全局异常拦截，业务代码中只需抛异常即可自动转化为标准响应：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: exception/GlobalExceptionHandler.java</span></span><br><span class="line"><span class="meta">@RestControllerAdvice</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GlobalExceptionHandler</span> &#123;</span><br><span class="line">    <span class="meta">@ExceptionHandler(BizException.class)</span></span><br><span class="line">    <span class="keyword">public</span> Result&lt;Void&gt; <span class="title function_">handleBizException</span><span class="params">(BizException e)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Result.fail(<span class="number">400</span>, e.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler(UnauthorizedException.class)</span></span><br><span class="line">    <span class="keyword">public</span> Result&lt;Void&gt; <span class="title function_">handleUnauthorizedException</span><span class="params">(UnauthorizedException e)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Result.fail(<span class="number">401</span>, e.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Go 版本需要在每个 controller 函数里手动 <code>if err != nil { response.Fail(...); return }</code>，Java 版本直接 <code>throw new BizException(&quot;...&quot;)</code> 即可，代码量减少且不易遗漏。</p>
+<hr>
+<h3 id="1-2-认证体系：从-Middleware-查库到-Filter-Chain-ThreadLocal"><a href="#1-2-认证体系：从-Middleware-查库到-Filter-Chain-ThreadLocal" class="headerlink" title="1.2 认证体系：从 Middleware 查库到 Filter Chain + ThreadLocal"></a>1.2 认证体系：从 Middleware 查库到 Filter Chain + ThreadLocal</h3><p>Go 版本的认证中间件逻辑：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go: middleware/authMiddleware.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">AuthMiddleware</span><span class="params">()</span></span> gin.HandlerFunc &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(ctx *gin.Context)</span></span> &#123;</span><br><span class="line">        tokenString := ctx.GetHeader(<span class="string">&quot;Authorization&quot;</span>)</span><br><span class="line">        <span class="comment">// ... 解析 token, 提取 userId ...</span></span><br><span class="line">        db := common.GetDB()</span><br><span class="line">        <span class="keyword">var</span> user model.User</span><br><span class="line">        db.Where(<span class="string">&quot;userID = ?&quot;</span>, userId).First(&amp;user)</span><br><span class="line">        ctx.Set(<span class="string">&quot;user&quot;</span>, user)   <span class="comment">// 存入 gin.Context</span></span><br><span class="line">        ctx.Next()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：每次请求都查一次数据库拿 User 对象，且 controller 侧需要 <code>ctx.Get(&quot;user&quot;)</code> 然后类型断言，既低效又不安全。</p>
+<p>Java 版本做了两件事解耦：</p>
+<p><strong>JWT Filter 只负责解析 token 并存入 ThreadLocal：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: config/security/JwtAuthenticationFilter.java</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JwtAuthenticationFilter</span> <span class="keyword">extends</span> <span class="title class_">OncePerRequestFilter</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> List&lt;String&gt; WHITE_LIST = List.of(</span><br><span class="line">        <span class="string">&quot;/api/auth/login&quot;</span>, <span class="string">&quot;/api/auth/register&quot;</span>, <span class="string">&quot;/api/auth/refresh&quot;</span>,</span><br><span class="line">        <span class="string">&quot;/api/auth/validateEmail&quot;</span>, <span class="string">&quot;/api/auth/modifyPassword&quot;</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">doFilterInternal</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                                    HttpServletResponse response,</span></span><br><span class="line"><span class="params">                                    FilterChain filterChain)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">path</span> <span class="operator">=</span> request.getRequestURI();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 解析 token，设置用户上下文</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> resolveToken(request);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.hasText(token)) &#123;</span><br><span class="line">            <span class="type">Integer</span> <span class="variable">userId</span> <span class="operator">=</span> jwtProvider.getUserId(token);</span><br><span class="line">            UserContext.setUserId(userId);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 白名单放行</span></span><br><span class="line">        <span class="keyword">if</span> (isWhiteList(path) || path.startsWith(<span class="string">&quot;/api/auth/&quot;</span>)) &#123;</span><br><span class="line">            filterChain.doFilter(request, response);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 其他路径必须有 token</span></span><br><span class="line">        <span class="keyword">if</span> (!StringUtils.hasText(token)) &#123;</span><br><span class="line">            unauthorizedEntryPoint.handle(request, response,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;未携带Token&quot;</span>));</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        filterChain.doFilter(request, response);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>ThreadLocal 封装供 Service 层直接取用：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: config/security/UserContext.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserContext</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Integer&gt; userHolder = <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Integer <span class="title function_">getUserId</span><span class="params">()</span> &#123; <span class="keyword">return</span> userHolder.get(); &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">setUserId</span><span class="params">(Integer userId)</span> &#123; userHolder.set(userId); &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">clear</span><span class="params">()</span> &#123; userHolder.remove(); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这使得 Service 层不需要从 Controller 传参就能拿到当前用户 ID，代码更干净：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Service 层直接获取当前用户，无需传参</span></span><br><span class="line"><span class="type">Integer</span> <span class="variable">userId</span> <span class="operator">=</span> UserContext.getUserId();</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="1-3-数据库访问层"><a href="#1-3-数据库访问层" class="headerlink" title="1.3 数据库访问层"></a>1.3 数据库访问层</h3><p>Go 版本用的是 GORM v1（<code>github.com/jinzhu/gorm</code>），全局 <code>common.GetDB()</code> 拿连接：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go: 典型的 controller 内数据库操作</span></span><br><span class="line">db := common.GetDB()</span><br><span class="line"><span class="keyword">var</span> user model.User</span><br><span class="line">db.Where(<span class="string">&quot;phone = ?&quot;</span>, userTelephone).First(&amp;user)</span><br><span class="line"><span class="keyword">var</span> posts []model.Post</span><br><span class="line">db.Where(<span class="string">&quot;`partition` != ?&quot;</span>, <span class="string">&quot;打分&quot;</span>).Order(<span class="string">&quot;postID DESC&quot;</span>)</span><br><span class="line">  .Offset(offset).Limit(limit).Find(&amp;posts)</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：字符串拼接 SQL 条件容易写错字段名，且每个 controller 函数都要写一遍 <code>db := common.GetDB()</code>。</p>
+<p>Java 版本用 MyBatis-Plus，Mapper 继承 <code>BaseMapper&lt;T&gt;</code> 自带 CRUD，复杂查询用 <code>LambdaQueryWrapper</code> 保证字段名编译期检查：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: service/impl/PostServiceImpl.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PostServiceImpl</span> <span class="keyword">extends</span> <span class="title class_">ServiceImpl</span>&lt;PostMapper, Post&gt; <span class="keyword">implements</span> <span class="title class_">PostService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">post</span><span class="params">(PostDTO postDTO)</span> &#123;</span><br><span class="line">        <span class="type">Integer</span> <span class="variable">userId</span> <span class="operator">=</span> UserContext.getUserId();</span><br><span class="line">        <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> userMapper.selectById(userId);</span><br><span class="line">        <span class="keyword">if</span> (user == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;用户不存在&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">Post</span> <span class="variable">post</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Post</span>();</span><br><span class="line">        post.setUserId(userId);</span><br><span class="line">        post.setTitle(postDTO.getTitle().trim());</span><br><span class="line">        post.setPtext(postDTO.getContent().trim());</span><br><span class="line">        post.setCategory(postDTO.getCategory().trim());</span><br><span class="line">        post.setHeat(<span class="number">0.0</span>);</span><br><span class="line">        save(post);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Lambda 写法杜绝了字符串打错字段名的问题：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 类型安全的查询条件</span></span><br><span class="line">LambdaQueryWrapper&lt;ChatMsg&gt; wrapper = Wrappers.lambdaQuery();</span><br><span class="line">wrapper.and(w -&gt; w</span><br><span class="line">    .eq(ChatMsg::getSenderUserId, senderId)</span><br><span class="line">    .eq(ChatMsg::getTargetUserId, targetId)</span><br><span class="line">).or(w -&gt; w</span><br><span class="line">    .eq(ChatMsg::getSenderUserId, targetId)</span><br><span class="line">    .eq(ChatMsg::getTargetUserId, senderId)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、技术选型对比"><a href="#二、技术选型对比" class="headerlink" title="二、技术选型对比"></a>二、技术选型对比</h2><h3 id="2-1-多级缓存：从-Redis-单级到-Caffeine-Redis-二级"><a href="#2-1-多级缓存：从-Redis-单级到-Caffeine-Redis-二级" class="headerlink" title="2.1 多级缓存：从 Redis 单级到 Caffeine + Redis 二级"></a>2.1 多级缓存：从 Redis 单级到 Caffeine + Redis 二级</h3><p>Go 版本仅用 Redis 做缓存（邮箱验证码 + 热帖 ZSet），没有本地缓存层。Java 版本实现了 <strong>L1(Caffeine 本地) + L2(Redis 远程)</strong> 多级缓存，并内置了缓存穿透&#x2F;击穿&#x2F;雪崩的防护：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">读取流程:</span><br><span class="line">  L1 命中 → 直接返回 (微秒级)</span><br><span class="line">  L1 未命中 → L2 命中 → 回填 L1 → 返回</span><br><span class="line">  L2 未命中 → 获取分布式锁 → 双重检查 → 查 DB → 回填 L2+L1 → 释放锁 → 返回</span><br></pre></td></tr></table></figure>
+
+<p>核心实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: cache/MultiLevelCache.java</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MultiLevelCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Cache&lt;String, String&gt; l1;      <span class="comment">// Caffeine</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StringRedisTemplate redis;      <span class="comment">// L2</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; T <span class="title function_">get</span><span class="params">(String key, Class&lt;T&gt; clazz, <span class="type">int</span> l2TtlSeconds,</span></span><br><span class="line"><span class="params">                     Supplier&lt;T&gt; dbLoader)</span> &#123;</span><br><span class="line">        <span class="comment">// L1</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">cached</span> <span class="operator">=</span> l1.getIfPresent(key);</span><br><span class="line">        <span class="keyword">if</span> (cached != <span class="literal">null</span>) <span class="keyword">return</span> JSON.parseObject(cached, clazz);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// L2</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">redisJson</span> <span class="operator">=</span> redis.opsForValue().get(key);</span><br><span class="line">        <span class="keyword">if</span> (redisJson != <span class="literal">null</span>) &#123;</span><br><span class="line">            l1.put(key, redisJson);</span><br><span class="line">            <span class="keyword">return</span> JSON.parseObject(redisJson, clazz);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// L2 未命中 → 分布式锁防击穿</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">lockKey</span> <span class="operator">=</span> <span class="string">&quot;lock:&quot;</span> + key;</span><br><span class="line">        <span class="type">Boolean</span> <span class="variable">gotLock</span> <span class="operator">=</span> redis.opsForValue()</span><br><span class="line">            .setIfAbsent(lockKey, <span class="string">&quot;1&quot;</span>, Duration.ofSeconds(<span class="number">10</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (Boolean.TRUE.equals(gotLock)) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 双重检查</span></span><br><span class="line">                redisJson = redis.opsForValue().get(key);</span><br><span class="line">                <span class="keyword">if</span> (redisJson != <span class="literal">null</span>) &#123;</span><br><span class="line">                    l1.put(key, redisJson);</span><br><span class="line">                    <span class="keyword">return</span> JSON.parseObject(redisJson, clazz);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 查 DB</span></span><br><span class="line">                <span class="type">Object</span> <span class="variable">data</span> <span class="operator">=</span> dbLoader.get();</span><br><span class="line">                <span class="type">String</span> <span class="variable">value</span> <span class="operator">=</span> data == <span class="literal">null</span> ? <span class="string">&quot;__NULL__&quot;</span> : JSON.toJSONString(data);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// TTL 加随机抖动防雪崩</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">jitter</span> <span class="operator">=</span> ThreadLocalRandom.current()</span><br><span class="line">                    .nextInt((<span class="type">int</span>) (l2TtlSeconds * <span class="number">0.2</span>));</span><br><span class="line">                redis.opsForValue().set(key, value,</span><br><span class="line">                    Duration.ofSeconds(l2TtlSeconds + jitter));</span><br><span class="line">                l1.put(key, value);</span><br><span class="line">                <span class="keyword">return</span> (T) data;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                redis.delete(lockKey);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 未抢到锁，重试</span></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>三层防护机制</strong>：</p>
+<ul>
+<li><strong>穿透</strong>：空值缓存 <code>__NULL__</code> 标记，30s TTL</li>
+<li><strong>击穿</strong>：Redis SETNX 分布式互斥锁，只有一个线程重建缓存</li>
+<li><strong>雪崩</strong>：TTL 附加 0~20% 随机抖动</li>
+</ul>
+<p>同时通过 Redis Pub&#x2F;Sub 实现跨实例 L1 缓存驱逐同步，多实例部署时不会出现本地缓存不一致。</p>
+<hr>
+<h3 id="2-2-消息队列：Kafka-异步解耦"><a href="#2-2-消息队列：Kafka-异步解耦" class="headerlink" title="2.2 消息队列：Kafka 异步解耦"></a>2.2 消息队列：Kafka 异步解耦</h3><p>Go 版本中，发送邮件通知和创建系统通知是同步写在业务逻辑里的，一个 <code>db.Create(&amp;notice)</code> 就直接入库了。Java 版本引入了 Kafka 做异步解耦：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: service/impl/KafkaProducerService.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">KafkaProducerService</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> KafkaTemplate&lt;String, Object&gt; kafkaTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sendEmailEvent</span><span class="params">(EmailEvent event)</span> &#123;</span><br><span class="line">        kafkaTemplate.send(<span class="string">&quot;email-verification&quot;</span>, event)</span><br><span class="line">            .whenComplete((result, ex) -&gt; &#123;</span><br><span class="line">                <span class="keyword">if</span> (ex != <span class="literal">null</span>) log.error(<span class="string">&quot;发送邮件事件失败: to=&#123;&#125;&quot;</span>, event.getTo(), ex);</span><br><span class="line">            &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sendNotificationEvent</span><span class="params">(NotificationEvent event)</span> &#123;</span><br><span class="line">        kafkaTemplate.send(<span class="string">&quot;notification&quot;</span>, event)</span><br><span class="line">            .whenComplete((result, ex) -&gt; &#123;</span><br><span class="line">                <span class="keyword">if</span> (ex != <span class="literal">null</span>) log.error(<span class="string">&quot;发送通知事件失败&quot;</span>, ex);</span><br><span class="line">            &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>消费端：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: service/impl/KafkaConsumerService.java</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">KafkaConsumerService</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MailService mailService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> NoticeMapper noticeMapper;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@KafkaListener(topics = &quot;email-verification&quot;, groupId = &quot;email-group&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleEmailEvent</span><span class="params">(EmailEvent event)</span> &#123;</span><br><span class="line">        mailService.sendCode(event.getTo(), event.getCode());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@KafkaListener(topics = &quot;notification&quot;, groupId = &quot;notification-group&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleNotificationEvent</span><span class="params">(NotificationEvent event)</span> &#123;</span><br><span class="line">        <span class="type">Notice</span> <span class="variable">notice</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Notice</span>();</span><br><span class="line">        notice.setReceiver(event.getReceiver());</span><br><span class="line">        notice.setType(event.getType());</span><br><span class="line">        notice.setNtext(event.getText());</span><br><span class="line">        notice.setTime(LocalDateTime.now());</span><br><span class="line">        noticeMapper.insert(notice);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好处是明显的：用户发帖&#x2F;评论时不需要等待邮件发送完成，接口响应更快，而且邮件服务挂了也不影响核心业务流程。</p>
+<hr>
+<h3 id="2-3-认证：双-Token-前端自动刷新"><a href="#2-3-认证：双-Token-前端自动刷新" class="headerlink" title="2.3 认证：双 Token + 前端自动刷新"></a>2.3 认证：双 Token + 前端自动刷新</h3><p>原 Go 版本和后端一样用的是 Access Token（7天）+ Refresh Token（30天）双 token 机制。但 Java 版前端做了更完善的自动刷新：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TypeScript: api/req.ts</span></span><br><span class="line"><span class="keyword">let</span> <span class="attr">refreshPromise</span>: <span class="title class_">Promise</span>&lt;<span class="built_in">void</span>&gt; | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">requestFunc</span>(<span class="params"><span class="attr">url</span>: <span class="built_in">string</span>, <span class="attr">object</span>: <span class="title class_">RequestObject</span>,</span></span><br><span class="line"><span class="params">                           <span class="attr">tokenIsNeeded</span>: <span class="built_in">boolean</span> = <span class="literal">true</span></span>) &#123;</span><br><span class="line">  <span class="comment">// 带 token 发请求</span></span><br><span class="line">  <span class="keyword">let</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(url, &#123;</span><br><span class="line">    <span class="attr">headers</span>: &#123; <span class="title class_">Authorization</span>: <span class="string">`Bearer <span class="subst">$&#123;store.token.value&#125;</span>`</span> &#125;,</span><br><span class="line">    ...</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 401 → 自动刷新 token</span></span><br><span class="line">  <span class="keyword">if</span> (res.<span class="property">status</span> === <span class="number">401</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!refreshPromise) &#123;</span><br><span class="line">      refreshPromise = (<span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123; <span class="keyword">await</span> <span class="title function_">refreshTokenIfNeeded</span>() &#125;</span><br><span class="line">        <span class="keyword">finally</span> &#123; refreshPromise = <span class="literal">null</span> &#125;</span><br><span class="line">      &#125;)()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">await</span> refreshPromise</span><br><span class="line">    res = <span class="keyword">await</span> <span class="title function_">fetch</span>(url, ...)  <span class="comment">// 重试</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> res</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点</strong>：<code>refreshPromise</code> 作为模块级单例去重并发请求——多个请求同时遇到 401 时，只有第一个触发刷新，其余等待同一个 Promise 完成，避免刷新 token 被多次调用导致后续的 refresh token 失效。</p>
+<hr>
+<h2 id="三、踩坑与修复"><a href="#三、踩坑与修复" class="headerlink" title="三、踩坑与修复"></a>三、踩坑与修复</h2><h3 id="3-1-用户标识：从手机号到-JWT-userId"><a href="#3-1-用户标识：从手机号到-JWT-userId" class="headerlink" title="3.1 用户标识：从手机号到 JWT userId"></a>3.1 用户标识：从手机号到 JWT userId</h3><p>Go 版本中多个 controller 接口用 <code>userTelephone</code>（手机号）作为请求参数来标识用户：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go: 前端传手机号来标识用户</span></span><br><span class="line"><span class="keyword">type</span> SaveMsg <span class="keyword">struct</span> &#123;</span><br><span class="line">    UserTelephone <span class="type">string</span></span><br><span class="line">    PostID        <span class="type">uint</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">UpdateSave</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> msg SaveMsg</span><br><span class="line">    c.Bind(&amp;msg)</span><br><span class="line">    <span class="keyword">var</span> user model.User</span><br><span class="line">    db.Where(<span class="string">&quot;phone = ?&quot;</span>, msg.UserTelephone).First(&amp;user)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>风险</strong>：手机号可以被篡改，攻击者理论上可以伪造他人身份操作。Java 版本彻底移除了这个模式——用户身份一律从 JWT 中解析，Service 层通过 <code>UserContext.getUserId()</code> 获取，不再信任客户端传入的任何用户标识。</p>
+<h3 id="3-2-Go-Controller-中的-N-1-查询"><a href="#3-2-Go-Controller-中的-N-1-查询" class="headerlink" title="3.2 Go Controller 中的 N+1 查询"></a>3.2 Go Controller 中的 N+1 查询</h3><p>翻阅 Go 版本的 <code>Browse</code> 函数（浏览帖子列表），每查到一个帖子后，都单独查一次 <code>plike</code>、<code>psave</code>、<code>user</code> 表：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go: 经典的 N+1 问题</span></span><br><span class="line"><span class="keyword">for</span> _, post := <span class="keyword">range</span> posts &#123;</span><br><span class="line">    <span class="keyword">var</span> like model.Plike</span><br><span class="line">    db.Where(<span class="string">&quot;userID = ? AND ptargetID = ?&quot;</span>, user.UserID, post.PostID).First(&amp;like)</span><br><span class="line">    <span class="keyword">var</span> save model.Psave</span><br><span class="line">    db.Where(<span class="string">&quot;userID = ? AND ptargetID = ?&quot;</span>, user.UserID, post.PostID).First(&amp;save)</span><br><span class="line">    <span class="keyword">var</span> user model.User</span><br><span class="line">    db.Where(<span class="string">&quot;userID = ?&quot;</span>, post.UserID).First(&amp;user)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>100 个帖子就是 300+ 次数据库查询。重构时对这种热点查询做了批量优化——一次性查出当前用户所有点赞&#x2F;收藏的帖子 ID，在内存中做匹配，或者利用缓存层减少 DB 压力。</p>
+<h3 id="3-3-前端字段命名映射"><a href="#3-3-前端字段命名映射" class="headerlink" title="3.3 前端字段命名映射"></a>3.3 前端字段命名映射</h3><p>Go 版本返回的 JSON 字段是 GORM 自动生成的蛇形命名（如 <code>user_id</code>、<code>avatar_url</code>），但前端 TypeScript 接口用的是小驼峰。Java 版本统一了这个问题。对于特殊情况——<code>GET /auth/info</code> 返回的 VO 需要和前端 Store 接口对齐——使用 <code>@JsonProperty</code> 显式映射：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 部分 VO 需要 @JsonProperty 桥接前后端字段命名差异</span></span><br><span class="line"><span class="comment">// CurrentUserVO 中: userID ↔ userId, avatarURL ↔ avatarUrl</span></span><br></pre></td></tr></table></figure>
+
+<p>前端侧也封装了映射函数处理 <code>POST /auth/getInfo</code> 返回的原始实体字段。重构后形成了明确的规范：新的接口统一用小驼峰，不再有两套命名混用的问题。</p>
+<h3 id="3-4-CORS-配置的坑"><a href="#3-4-CORS-配置的坑" class="headerlink" title="3.4 CORS 配置的坑"></a>3.4 CORS 配置的坑</h3><p>Go 版本 CORS 是用自定义中间件实现的，配置分散。Java 版本统一在 Spring Security 中管理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java: config/security/SecurityConfig.java</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> CorsConfigurationSource <span class="title function_">corsConfigurationSource</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">CorsConfiguration</span> <span class="variable">config</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CorsConfiguration</span>();</span><br><span class="line">    config.setAllowedOriginPatterns(List.of(<span class="string">&quot;*&quot;</span>));</span><br><span class="line">    config.setAllowedMethods(List.of(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;POST&quot;</span>, <span class="string">&quot;PUT&quot;</span>, <span class="string">&quot;DELETE&quot;</span>, <span class="string">&quot;OPTIONS&quot;</span>, <span class="string">&quot;PATCH&quot;</span>));</span><br><span class="line">    config.setAllowedHeaders(List.of(<span class="string">&quot;*&quot;</span>));</span><br><span class="line">    config.setAllowCredentials(<span class="literal">true</span>);  <span class="comment">// 必须为 true，否则前端拿不到响应头</span></span><br><span class="line"></span><br><span class="line">    <span class="type">UrlBasedCorsConfigurationSource</span> <span class="variable">source</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UrlBasedCorsConfigurationSource</span>();</span><br><span class="line">    source.registerCorsConfiguration(<span class="string">&quot;/**&quot;</span>, config);</span><br><span class="line">    <span class="keyword">return</span> source;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>踩坑</strong>：<code>setAllowCredentials(true)</code> 和 <code>setAllowedOrigins(List.of(&quot;*&quot;))</code> 不能同时存在（浏览器安全策略禁止），需要用 <code>setAllowedOriginPatterns</code> 替代。</p>
+<hr>
+<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Go (重构前)</th>
+<th>Java (重构后)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>框架</td>
+<td>Gin + GORM v1</td>
+<td>Spring Boot 3.3 + MyBatis-Plus 3.5</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>手写 Middleware，每次查库</td>
+<td>Spring Security + JWT Filter + ThreadLocal</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Redis 单级</td>
+<td>Caffeine L1 + Redis L2 + 三防</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td>无，同步操作</td>
+<td>Kafka 异步（邮件 + 通知）</td>
+</tr>
+<tr>
+<td>文件存储</td>
+<td>本地 + 腾讯 COS</td>
+<td>MinIO 对象存储</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>Controller 一把梭</td>
+<td>Controller → Service → Mapper 分层</td>
+</tr>
+<tr>
+<td>类型安全</td>
+<td><code>gin.H</code> 动态 map</td>
+<td>泛型 <code>Result&lt;T&gt;</code> + DTO&#x2F;VO</td>
+</tr>
+<tr>
+<td>API 文档</td>
+<td>无</td>
+<td>Knife4j (Swagger)</td>
+</tr>
+</tbody></table>
+<p>重构的核心思路不是”换个语言重写一遍”，而是借重构之机修复原项目中积累的技术债——用分层架构代替平铺直叙，用类型安全代替字符串硬编码，用缓存策略和消息队列提升性能和可维护性。代码量从 56 个 Go 文件增长到 198 个 Java 文件，但每个文件职责更单一，单文件复杂度大幅降低。</p>
+<p>最终效果：接口响应更快（多级缓存）、代码更易维护（分层清晰）、扩展性更强（Kafka 解耦后的通知系统可以轻松接入新渠道）。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/biubiu-cj">biubiu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://biubiu-cj.github.io/2026/06/12/soft-market-refactor/">https://biubiu-cj.github.io/2026/06/12/soft-market-refactor/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://biubiu-cj.github.io" target="_blank">浅夏</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/Go/">Go</a><a class="post-meta__tags" href="/tags/Spring-Boot/">Spring Boot</a><a class="post-meta__tags" href="/tags/%E9%87%8D%E6%9E%84/">重构</a><a class="post-meta__tags" href="/tags/Gin/">Gin</a><a class="post-meta__tags" href="/tags/MyBatis-Plus/">MyBatis-Plus</a><a class="post-meta__tags" href="/tags/Redis/">Redis</a><a class="post-meta__tags" href="/tags/Kafka/">Kafka</a></div><div class="post-share"><div class="social-share" data-image="/images/2.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/06/11/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="数据结构与算法总结"><img class="cover" src="/images/1.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">数据结构与算法总结</div></div><div class="info-2"><div class="info-item-1"> 本文整理了常见数据结构与算法的 Java 实现，涵盖排序、链表、二叉树、前缀树、图、贪心等内容。   一、排序算法1.1 归并排序（O(NlogN)）12345678910111213141516171819202122232425public class MergeSort &#123;    public static void mergeSort(int[] arr) &#123;        if (arr == null || arr.length &lt; 2) return;        process(arr, 0, arr.length - 1);    &#12...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/06/11/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="数据结构与算法总结"><img class="cover" src="/images/1.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-11</div><div class="info-item-2">数据结构与算法总结</div></div><div class="info-2"><div class="info-item-1"> 本文整理了常见数据结构与算法的 Java 实现，涵盖排序、链表、二叉树、前缀树、图、贪心等内容。   一、排序算法1.1 归并排序（O(NlogN)）12345678910111213141516171819202122232425public class MergeSort &#123;    public static void mergeSort(int[] arr) &#123;        if (arr == null || arr.length &lt; 2) return;        process(arr, 0, arr.length - 1);    &#12...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">biubiu</div><div class="author-info-description">好きなことを続ける</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/biubiu-cj"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/biubiu-cj" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">🌙 欢迎来到浅夏的小窝~ <br> 星空の下で</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%EF%BC%9A%E4%BB%8E%E3%80%8C%E5%B9%B3%E9%93%BA%E7%9B%B4%E5%8F%99%E3%80%8D%E5%88%B0%E3%80%8C%E5%88%86%E5%B1%82%E8%80%8C%E6%B2%BB%E3%80%8D"><span class="toc-number">1.</span> <span class="toc-text">一、架构演进：从「平铺直叙」到「分层而治」</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%BB%9F%E4%B8%80%E5%93%8D%E5%BA%94%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 统一响应格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%AE%A4%E8%AF%81%E4%BD%93%E7%B3%BB%EF%BC%9A%E4%BB%8E-Middleware-%E6%9F%A5%E5%BA%93%E5%88%B0-Filter-Chain-ThreadLocal"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 认证体系：从 Middleware 查库到 Filter Chain + ThreadLocal</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BF%E9%97%AE%E5%B1%82"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 数据库访问层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">二、技术选型对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%A4%9A%E7%BA%A7%E7%BC%93%E5%AD%98%EF%BC%9A%E4%BB%8E-Redis-%E5%8D%95%E7%BA%A7%E5%88%B0-Caffeine-Redis-%E4%BA%8C%E7%BA%A7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 多级缓存：从 Redis 单级到 Caffeine + Redis 二级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%9AKafka-%E5%BC%82%E6%AD%A5%E8%A7%A3%E8%80%A6"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 消息队列：Kafka 异步解耦</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%AE%A4%E8%AF%81%EF%BC%9A%E5%8F%8C-Token-%E5%89%8D%E7%AB%AF%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 认证：双 Token + 前端自动刷新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%B8%A9%E5%9D%91%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-number">3.</span> <span class="toc-text">三、踩坑与修复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%94%A8%E6%88%B7%E6%A0%87%E8%AF%86%EF%BC%9A%E4%BB%8E%E6%89%8B%E6%9C%BA%E5%8F%B7%E5%88%B0-JWT-userId"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 用户标识：从手机号到 JWT userId</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Go-Controller-%E4%B8%AD%E7%9A%84-N-1-%E6%9F%A5%E8%AF%A2"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Go Controller 中的 N+1 查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%89%8D%E7%AB%AF%E5%AD%97%E6%AE%B5%E5%91%BD%E5%90%8D%E6%98%A0%E5%B0%84"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 前端字段命名映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-CORS-%E9%85%8D%E7%BD%AE%E7%9A%84%E5%9D%91"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 CORS 配置的坑</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">四、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/06/12/soft-market-refactor/" title="软工集市：从 Go 到 Java 的重构之路"><img src="/images/2.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="软工集市：从 Go 到 Java 的重构之路"/></a><div class="content"><a class="title" href="/2026/06/12/soft-market-refactor/" title="软工集市：从 Go 到 Java 的重构之路">软工集市：从 Go 到 Java 的重构之路</a><time datetime="2026-06-12T06:00:00.000Z" title="发表于 2026-06-12 14:00:00">2026-06-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/06/11/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="数据结构与算法总结"><img src="/images/1.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数据结构与算法总结"/></a><div class="content"><a class="title" href="/2026/06/11/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="数据结构与算法总结">数据结构与算法总结</a><time datetime="2026-06-11T08:00:00.000Z" title="发表于 2026-06-11 16:00:00">2026-06-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/06/10/hello-world/" title="Hello World"><img src="/img/bg.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hello World"/></a><div class="content"><a class="title" href="/2026/06/10/hello-world/" title="Hello World">Hello World</a><time datetime="2026-06-10T11:54:05.983Z" title="发表于 2026-06-10 19:54:05">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By biubiu</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5-b1</a></span></div><div class="footer_custom_text">浅夏的博客 - 记录学习与生活的点点滴滴</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5-b1"></script><script src="/js/main.js?v=5.5.5-b1"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark_dimmed' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'biubiu-cj/biubiu-cj.github.io',
+      'data-repo-id': 'R_kgDOS2rD9g',
+      'data-category-id': 'DIC_kwDOS2rD9s4C-8ag',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !true) {
+    if (true) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script src="/js/stardust.js"></script><script src="/js/sakura.js"></script><script src="https://cdn.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script src="/js/live2d-config.js"></script><canvas class="fireworks" mobile="true"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-show-text.min.js" data-mobile="true" data-text="桜,好き,頑張って,夢,星,浅夏" data-fontsize="16px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章..." type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5-b1"></script></div></div></body></html>
