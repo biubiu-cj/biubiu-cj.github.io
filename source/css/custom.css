@@ -1,0 +1,439 @@
+/* ==========================================
+   浅夏 Blog — Cinematic Anime Theme
+   动态效果：Ken Burns 慢速缩放 + 星光粒子 + 视差感
+   ========================================== */
+
+/* ==========================================
+   1. Body 全页背景图（不生成 #web_bg，避免与头部重叠）
+   ========================================== */
+body {
+  background: url('/img/bg.jpg') center/cover no-repeat fixed !important;
+}
+
+/* ==========================================
+   2. Ken Burns Effect — 头部 Banner 慢速缩放
+   ========================================== */
+#page-header {
+  position: relative;
+  overflow: hidden;
+  background-size: 105% auto !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  animation: kenburns 35s ease-in-out infinite alternate;
+}
+
+@keyframes kenburns {
+  0%   { background-size: 105% auto; background-position: 50% 50%; }
+  100% { background-size: 112% auto; background-position: 50% 55%; }
+}
+
+/* 头部遮罩层（让文字更清晰可读） */
+#page-header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.4) 0%,
+    rgba(0,0,0,0.1) 35%,
+    rgba(0,0,0,0.35) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 确保标题文字在遮罩之上 */
+#page-header #site-info,
+#page-header #nav,
+#page-header #scroll-down {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================
+   3. Content Reveal — 内容渐入
+   ========================================== */
+/* 文章区域滚动时轻微上浮 */
+#content-inner {
+  animation: contentReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes contentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   4. Glass Morphism Cards (保留 + 增强)
+   ========================================== */
+/* 文章卡片：实色白底，不透明，左侧封面图 + 右侧文字 */
+#recent-posts > .recent-post-item,
+.layout > .recent-posts > .recent-post-item {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 侧边栏卡片：半透明毛玻璃保留 */
+.card-widget,
+#aside_content .card-widget {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 文章详情页：实色白底 */
+.layout_post > #post,
+.layout_page > #page {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+#recent-posts > .recent-post-item:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-widget:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* ==========================================
+   5. Navigation Bar — 半透明毛玻璃
+   ========================================== */
+#nav {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.4s ease;
+}
+
+/* 滚动后导航栏更实 */
+#nav.scroll {
+  background: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================
+   6. Post Cards
+   ========================================== */
+#recent-posts > .recent-post-item {
+  overflow: hidden;
+}
+
+.recent-post-item .post_cover a {
+  height: 100%;
+}
+
+.recent-post-item .post_cover img {
+  border-radius: 16px 0 0 16px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.recent-post-item:hover .post_cover img {
+  transform: scale(1.05);
+}
+
+@media screen and (max-width: 768px) {
+  .recent-post-item .post_cover img {
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+/* ==========================================
+   7. Footer
+   ========================================== */
+#footer {
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ==========================================
+   8. Sidebar
+   ========================================== */
+#aside_content .card-widget {
+  margin-bottom: 15px;
+}
+
+#aside_content .card-widget:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+#aside_content .card-widget.card-info img {
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 24px rgba(130, 160, 220, 0.3);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#aside_content .card-widget.card-info img:hover {
+  transform: rotate(360deg);
+}
+
+/* ==========================================
+   9. Tags
+   ========================================== */
+#aside_content .card-tag-cloud a,
+.tag-cloud-tags a {
+  background: rgba(130, 160, 220, 0.1) !important;
+  border: 1px solid rgba(130, 160, 220, 0.25) !important;
+  border-radius: 12px !important;
+  padding: 4px 12px !important;
+  transition: all 0.3s ease;
+}
+
+#aside_content .card-tag-cloud a:hover,
+.tag-cloud-tags a:hover {
+  background: rgba(130, 160, 220, 0.25) !important;
+  border-color: rgba(130, 160, 220, 0.5) !important;
+  color: #6a8cc4 !important;
+  transform: scale(1.08);
+}
+
+/* ==========================================
+   10. Scrollbar — 细暗色滚动条
+   ========================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(130, 160, 220, 0.4);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(130, 160, 220, 0.7);
+}
+
+/* ==========================================
+   11. Text Selection
+   ========================================== */
+::selection {
+  background: rgba(130, 160, 220, 0.35);
+  color: #fff;
+}
+
+/* ==========================================
+   12. Links
+   ========================================== */
+a {
+  transition: color 0.3s ease;
+}
+
+#article-container a {
+  color: #6a8cc4;
+}
+
+#article-container a:hover {
+  color: #4a6ca4;
+  text-decoration: underline wavy rgba(130, 160, 220, 0.4);
+}
+
+/* ==========================================
+   13. Headings
+   ========================================== */
+#article-container h2 {
+  border-left: 4px solid #6a8cc4;
+  padding-left: 12px;
+}
+
+#article-container h3 {
+  border-left: 3px solid rgba(130, 160, 220, 0.5);
+  padding-left: 10px;
+}
+
+/* ==========================================
+   14. Blockquote
+   ========================================== */
+#article-container blockquote {
+  background: rgba(130, 160, 220, 0.08);
+  border-left: 4px solid rgba(130, 160, 220, 0.5);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ==========================================
+   15. Code Block
+   ========================================== */
+figure.highlight {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================
+   16. Pagination
+   ========================================== */
+#pagination {
+  margin: 20px 0;
+}
+
+#pagination .page-number {
+  border-radius: 10px !important;
+  transition: all 0.3s ease;
+}
+
+#pagination .page-number.current {
+  background: #6a8cc4 !important;
+  box-shadow: 0 4px 14px rgba(106, 140, 196, 0.35);
+}
+
+/* ==========================================
+   17. Site Title
+   ========================================== */
+h1.site-title,
+.blog_title {
+  font-weight: bold;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.06em;
+}
+
+#site-subtitle {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================
+   18. TOC
+   ========================================== */
+#aside_content .toc-widget {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+}
+
+/* ==========================================
+   19. 404 Page
+   ========================================== */
+.error404 #page-header {
+  background: linear-gradient(135deg, #1a1f3a, #2a1f3a, #1a1f3a) !important;
+}
+
+/* ==========================================
+   20. Dark Mode Overrides
+   ========================================== */
+[data-theme="dark"] #recent-posts > .recent-post-item,
+[data-theme="dark"] .layout > .recent-posts > .recent-post-item,
+[data-theme="dark"] .layout_post > #post,
+[data-theme="dark"] .layout_page > #page {
+  background: rgba(30, 30, 50, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .card-widget,
+[data-theme="dark"] #aside_content .card-widget {
+  background: rgba(20, 20, 40, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] #nav {
+  background: rgba(20, 20, 40, 0.7) !important;
+}
+
+[data-theme="dark"] #footer {
+  background: transparent !important;
+}
+
+/* dark mode disabled */
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(130, 160, 220, 0.3);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(130, 160, 220, 0.5);
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(130, 160, 220, 0.4);
+  color: #eee;
+}
+
+[data-theme="dark"] #page-header::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.5) 0%,
+    rgba(0,0,0,0.2) 40%,
+    rgba(0,0,0,0.5) 100%
+  );
+}
+
+[data-theme="dark"] h1.site-title {
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+/* ==========================================
+   21. Live2D 看板娘层级
+   ========================================== */
+#live2d-widget,
+#live2dcanvas,
+canvas#live2dcanvas {
+  z-index: 9995 !important;
+}
+
+/* ==========================================
+   22. Responsive
+   ========================================== */
+@media screen and (max-width: 900px) {
+  #aside_content .card-widget,
+  #recent-posts > .recent-post-item,
+  .layout_post > #post {
+    background: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  #page-header {
+    animation: kenburns 50s ease-in-out infinite alternate;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #page-header #site-info {
+    padding: 0 20px;
+  }
+
+  .layout {
+    padding: 0 10px;
+  }
+
+  /* 移动端减轻动画负担 */
+  #page-header {
+    animation-duration: 60s;
+  }
+}
+
+/* 极度省电模式：prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  #page-header {
+    animation: none;
+  }
+}

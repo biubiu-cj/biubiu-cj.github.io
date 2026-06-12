@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:heiehiehi.github.io)",
+      "Bash(npx hexo *)",
+      "Bash(curl -s http://localhost:4000)",
+      "Bash(wget -qO- http://localhost:4000)",
+      "Bash(node -e \"process.kill\\(require\\('fs'\\).readFileSync\\('D:/HexoBlog/blog/.server.pid', 'utf8'\\).trim\\(\\), 'SIGTERM'\\)\")",
+      "Bash(pkill -f \"hexo server\")",
+      "Bash(lsof -ti:4000)",
+      "Bash(xargs kill)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(pnpm exec *)",
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/oh-my-live2d@latest/lib/index.min.js\")",
+      "Bash(curl -sL \"https://data.jsdelivr.com/v1/packages/npm/oh-my-live2d\")",
+      "Bash(curl -sL \"https://data.jsdelivr.com/v1/packages/npm/oh-my-live2d@0.19.3\")",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/oh-my-live2d-models@latest/assets/maia/maia.model.json\")",
+      "WebFetch(domain:blog.csdn.net)",
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/oml2d-models@0.7.0/README.md\")",
+      "Bash(curl -sL \"https://data.jsdelivr.com/v1/packages/npm/oml2d-models@0.7.0\")",
+      "WebFetch(domain:oml2d.com)",
+      "Bash(curl -sL \"https://registry.npmmirror.com/oml2d-models/latest/files/models/\")",
+      "Bash(curl -sL https://registry.npmmirror.com/oml2d-models/latest/files/models/__TRACKED_VAR__/)",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/live2d-widget-model-haru@1.0.5/assets/haru.model.json\")",
+      "Bash(curl -sI \"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json\")",
+      "Bash(pnpm add *)",
+      "Bash(cmd.exe //c \"rmdir /s /q D:\\\\HexoBlog\\\\blog\\\\public\")",
+      "Bash(mv D:/HexoBlog/blog/public D:/HexoBlog/blog/public_old)",
+      "Bash(mkdir D:/HexoBlog/blog/public)",
+      "Bash(git push *)",
+      "Bash(ssh *)",
+      "Bash(ssh-keygen *)",
+      "Bash(git *)",
+      "Bash(gh auth *)"
+    ]
+  }
+}
